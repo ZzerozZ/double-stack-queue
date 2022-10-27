@@ -1,11 +1,11 @@
 from dsqueue.double_stack_queue import DoubleStackQueue
 
 if __name__ == '__main__':
-    queue = DoubleStackQueue(max_size=3)
+    queue = DoubleStackQueue(max_size=5)
 
-    items = [f"item_{i}" for i in range(20)]
+    items = [f"item_{i}" for i in range(10)]
     idx = 0
-    for i in range(20):
+    for i in range(10):
         print(f"\t--- Step {i} ---")
         if not queue.full():
             print(f"+ Put {items[idx]} into queue")

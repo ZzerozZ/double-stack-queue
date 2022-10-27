@@ -8,11 +8,6 @@ class QueueEmptyException(QueueErr):
         super().__init__(*args)
 
 
-class RightStackFullException(QueueErr):
-    def __init__(self, *args: object) -> None:
-        super().__init__(*args)
-
-
-class LeftStackFullException(QueueErr):
+class QueueFullException(QueueErr):
     def __init__(self, *args: object) -> None:
         super().__init__(*args)

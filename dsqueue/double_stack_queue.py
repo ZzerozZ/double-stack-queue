@@ -1,6 +1,6 @@
 from queue import LifoQueue
 
-from error import LeftStackFullException, QueueEmptyException
+from error import QueueFullException, QueueEmptyException
 
 
 class DoubleStackQueue:
@@ -12,6 +12,7 @@ class DoubleStackQueue:
         """
         self.left_stack = LifoQueue(max_size - 1)
         self.right_stack = LifoQueue(max_size - 1)
+        self.max_size = max_size
         self.timeout = timeout
         self.state = 1
 
@@ -56,40 +57,44 @@ class DoubleStackQueue:
         Check queue is full or not
         :return: True if no more item can be added
         """
-        return self.left_stack.full() and (not self.right_stack.empty())
+        # Left is full and right is not empty --> can't put more item:
+        cant_add_more = self.left_stack.full() and (not self.right_stack.empty())
+
+        # Number of items reach queue size:
+        is_max_size = self.left_stack.qsize() + self.right_stack.qsize() == self.max_size
+        return cant_add_more or is_max_size
 
     def __put(self, item: object):
         """
         Add an item to queue
         :param item: any python object
         """
+        # If queue is full, no more item can be added
+        if self.full():
+            raise QueueFullException("Queue is full, let's pop some items out")
+
         # If left stack is not full, put item into it
         if not self.left_stack.full():
             self.left_stack.put(item, timeout=self.timeout)
         # If left stack is full, check right stack is empty or not
         else:
-            if self.right_stack.empty():
-                # If right stack is empty, move all items from left to right
-                self.__move_items_to_right_stack()
-                # Put item to left stack
-                self.left_stack.put(item, timeout=self.timeout)
-            else:
-                # If left stack is full and right stack is not empty, no more item can be added
-                raise LeftStackFullException("Queue is full, let's pop some items out")
+            # Move all items from left to right
+            self.__move_items_to_right_stack()
+            # Put item to left stack
+            self.left_stack.put(item, timeout=self.timeout)
 
     def __pop(self):
         """
         Get an item out of queue
         :return: last item which added to queue
         """
+        # Queue is empty
+        if self.empty():
+            raise QueueEmptyException("Queue is empty")
         if self.right_stack.empty():
-            if self.left_stack.empty():
-                # Queue is empty
-                raise QueueEmptyException("Queue is empty")
-            else:
-                # Right stack is empty but left stack have some items. We need to move them to right stack to pop out
-                self.__move_items_to_right_stack()
-                return self.right_stack.get(timeout=self.timeout)
+            # Right stack is empty but left stack have some items. We need to move them to right stack to pop out
+            self.__move_items_to_right_stack()
+            return self.right_stack.get(timeout=self.timeout)
         else:
             return self.right_stack.get(timeout=self.timeout)
 
